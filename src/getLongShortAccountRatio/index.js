@@ -4,7 +4,7 @@ const {HttpsProxyAgent} = require('https-proxy-agent');
 const config = {
     httpsAgent: new HttpsProxyAgent('http://127.0.0.1:7890'),
     headers:{
-        "X-MBX-APIKEY": 'cPTBVGcDT0fjEYodmCbNJOxJXM3iX3VDKUK6OquALA6CRukNY2zzxNF3WRwhk2fV',
+        "X-MBX-APIKEY": '',
     },
 }
 const moment = require('moment');
