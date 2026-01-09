@@ -37,9 +37,13 @@ const main = async () => {
                 }
             ])
             .select();
+            if(error){
+                console.log('=====数据库error',error)
+            }
             console.log(`====${coinListArr[i]}执行完成`)
         }
     } catch (error) {
+        console.log('=====',error)
     }
    
 }
