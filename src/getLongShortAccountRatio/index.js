@@ -5,12 +5,16 @@ require('dotenv').config({
 });
 const axios = require('axios');
 const {HttpsProxyAgent} = require('https-proxy-agent');
-const config = {
+const isLocal = process.env.NODE_ENV === 'development' || 
+                process.env.ENVIRONMENT === 'development';
+const config = isLocal ? {
     httpsAgent: new HttpsProxyAgent('http://127.0.0.1:7890'),
     headers:{
         "X-MBX-APIKEY": '',
     },
-}
+} : {
+    
+};
 const { createClient } = require('@supabase/supabase-js')
 const supabaseUrl = 'https://mrgneubpglkrwybppaik.supabase.co'
 const supabase = createClient(supabaseUrl, process.env.supabaseKey)
