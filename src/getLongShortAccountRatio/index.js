@@ -1,4 +1,8 @@
 //获取合约多空持仓比
+const path = require('path');
+require('dotenv').config({ 
+  path: path.join(__dirname, '../../', '.env') 
+});
 const axios = require('axios');
 const {HttpsProxyAgent} = require('https-proxy-agent');
 const config = {
@@ -7,54 +11,38 @@ const config = {
         "X-MBX-APIKEY": '',
     },
 }
-const moment = require('moment');
-const fs = require("fs")
 const { createClient } = require('@supabase/supabase-js')
 const supabaseUrl = 'https://mrgneubpglkrwybppaik.supabase.co'
-const supabaseKey = '' 
+const supabase = createClient(supabaseUrl, process.env.supabaseKey)
 
-const supabase = createClient(supabaseUrl, supabaseKey)
-let lastTime = ''
+const coinListArr = ['btc','eth','bnb','inj']
+const coinListArrLength = coinListArr.length
+
 const main = async () => {
     try {
-        const priceApiUrl = `https://fapi.binance.com/fapi/v1/openInterest?symbol=INJUSDT`
-        const listArr = await axios.get(priceApiUrl,config);
-        console.log('======',listArr.data)
-            lastTime = String(listArr.data.time)
-            const str = `${JSON.stringify(listArr.data)}====\n\r`
-            console.log('======',new Date(listArr.data.time).toISOString())
+        for(let i=0;i<coinListArrLength;i++){
+            const contractNumsUrl = `https://fapi.binance.com/fapi/v1/openInterest?symbol=${coinListArr[i].toUpperCase()}USDT`
+            const contractNumsData = await axios.get(contractNumsUrl,config);
+            const { time, openInterest } = contractNumsData.data
+            const priceUrl = `https://data-api.binance.vision/api/v3/avgPrice?symbol=${coinListArr[i].toUpperCase()}USDT`
+            const priceData = await axios.get(priceUrl)
+            const { price } = priceData.data
             const { data, error, count } = await supabase
-            .from('injContractNums')
+            .from(`${coinListArr[i]}ContractNums`)
             .insert([
                 { 
-                    nums: listArr.data.openInterest,
-                    price: 25,
-                    time:new Date(listArr.data.time).toISOString()
+                    nums: openInterest,
+                    price: price,
+                    time:new Date(time).toISOString()
                 }
             ])
             .select();
-            console.log('======',2)
-            console.log('=====',data, error, count)
-            if (error) {
-                console.error('错误详情:', {
-                  message: error.message,
-                  code: error.code,
-                  details: error.details,
-                  hint: error.hint
-                })
-              } else if (!data || data.length === 0) {
-                console.log('⚠️ 没有报错，但也没有返回数据')
-              } else {
-                console.log('✅ 插入成功，返回数据:', data)
-              }
-            // fs.appendFile("record.txt",str,(err) => {
-        
-            // })
+            console.log(`====${coinListArr[i]}执行完成`)
+        }
     } catch (error) {
-        
     }
    
 }
-// setInterval(main,1000)
 main()
+setInterval(main,180000)
    
