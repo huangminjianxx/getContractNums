@@ -19,7 +19,7 @@ const { createClient } = require('@supabase/supabase-js')
 const supabaseUrl = 'https://mrgneubpglkrwybppaik.supabase.co'
 const supabase = createClient(supabaseUrl, process.env.supabaseKey)
 
-const coinListArr = ['btc','eth','bnb','inj']
+const coinListArr = ['btc','eth','bnb','inj','grt','sol','doge','xrp','trx','link','sui','avax','uni','pepe','ondo','fil','pyth']
 const coinListArrLength = coinListArr.length
 
 const main = async () => {
@@ -27,27 +27,29 @@ const main = async () => {
         for(let i=0;i<coinListArrLength;i++){
             const contractNumsUrl = `https://fapi.binance.com/futures/data/openInterestHist?symbol=${coinListArr[i].toUpperCase()}USDT&period=5m&startTime=${Date.now() - 300000}&endTime=${Date.now()}`
             const contractNumsData = await axios.get(contractNumsUrl,config);
-            const { sumOpenInterest , sumOpenInterestValue , timestamp  , symbol} = contractNumsData.data[0]
-            console.log('=====',contractNumsData.data)
-            const priceUrl = `https://data-api.binance.vision/api/v3/avgPrice?symbol=${coinListArr[i].toUpperCase()}USDT`
-            const priceData = await axios.get(priceUrl)
-            const { price } = priceData.data
-            const { data, error, count } = await supabase
-            .from('openContractHistory')
-            .insert([
-                { 
-                    nums: sumOpenInterest, 
-                    price: price,
-                    numsValue:sumOpenInterestValue,
-                    time:new Date(timestamp).toISOString(),
-                    symbol:symbol
+            console.log('====',contractNumsData.data)
+            if(contractNumsData && contractNumsData.data && contractNumsData.data.length){
+                const { sumOpenInterest , sumOpenInterestValue , timestamp  , symbol} = contractNumsData.data[0]
+                const priceUrl = `https://data-api.binance.vision/api/v3/avgPrice?symbol=${coinListArr[i].toUpperCase()}USDT`
+                const priceData = await axios.get(priceUrl)
+                const { price } = priceData.data
+                const { data, error, count } = await supabase
+                .from('openContractHistory')
+                .insert([
+                    { 
+                        nums: sumOpenInterest, 
+                        price: price,
+                        numsValue:sumOpenInterestValue,
+                        time:new Date(timestamp).toISOString(),
+                        symbol:symbol
+                    }
+                ])
+                .select();
+                if(error){
+                    console.log('=====数据库error',error)
                 }
-            ])
-            .select();
-            if(error){
-                console.log('=====数据库error',error)
+                console.log(`====${coinListArr[i]}执行完成`)
             }
-            console.log(`====${coinListArr[i]}执行完成`)
         }
     } catch (error) {
         console.log('=====',error)
